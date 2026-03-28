@@ -40,5 +40,8 @@ enabled = true
 [functions.crawl-github]
 verify_jwt = false
 
+[functions.crawl-reddit]
+verify_jwt = false
+
 [functions.run-scorer]
 verify_jwt = false
