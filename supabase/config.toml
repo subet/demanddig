@@ -1,6 +1,3 @@
-[project]
-id = "demanddig"
-
 [api]
 enabled = true
 port = 54321
@@ -11,7 +8,7 @@ max_rows = 1000
 [db]
 port = 54322
 shadow_port = 54320
-major_version = 15
+major_version = 17
 
 [studio]
 enabled = true
@@ -19,8 +16,8 @@ port = 54323
 
 [auth]
 enabled = true
-site_url = "http://localhost:3000"
-additional_redirect_urls = ["https://localhost:3000"]
+site_url = "https://demanddig.vercel.app"
+additional_redirect_urls = ["https://demanddig.vercel.app"]
 jwt_expiry = 3600
 enable_refresh_token_rotation = true
 refresh_token_reuse_interval = 10
@@ -36,3 +33,12 @@ enabled = true
 client_id = "env(GITHUB_CLIENT_ID)"
 secret = "env(GITHUB_CLIENT_SECRET)"
 redirect_uri = ""
+
+[edge_runtime]
+enabled = true
+
+[functions.crawl-github]
+verify_jwt = false
+
+[functions.run-scorer]
+verify_jwt = false
