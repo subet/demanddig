@@ -294,11 +294,12 @@ Deno.serve(async () => {
 
       // Check if signal already exists for this entity
       const refKey = item.entity_type === 'github_repo' ? 'ref_github_repo' : 'ref_social_post'
-      const { data: existing } = await supabase
+      const { data: existingRows } = await supabase
         .from('signals')
         .select('id')
         .eq(refKey, item.entity_id)
-        .maybeSingle()
+        .limit(1)
+      const existing = existingRows?.[0] ?? null
 
       let summary = null, suggested_name = null, target_user = null, monetization = null
 
@@ -349,8 +350,7 @@ Deno.serve(async () => {
         .from('scoring_queue')
         .update({
           status: item.attempts >= 3 ? 'failed' : 'pending',
-          error_msg: message,
-        } as Record<string, unknown>)
+        })
         .eq('id', item.id)
 
       results.errors++
