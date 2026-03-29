@@ -35,6 +35,7 @@ export async function proxy(request: NextRequest) {
   if (!user && pathname.startsWith('/dashboard') ||
       !user && pathname.startsWith('/signals') ||
       !user && pathname.startsWith('/saved') ||
+      !user && pathname.startsWith('/archive') ||
       !user && pathname.startsWith('/settings')) {
     const loginUrl = request.nextUrl.clone()
     loginUrl.pathname = '/login'

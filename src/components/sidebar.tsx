@@ -11,6 +11,7 @@ const NAV = [
   { href: '/dashboard', label: 'Dashboard', icon: '◈' },
   { href: '/signals', label: 'Signals', icon: '⚡' },
   { href: '/saved', label: 'Saved', icon: '★' },
+  { href: '/archive', label: 'Archive', icon: '▣' },
   { href: '/settings', label: 'Settings', icon: '⚙' },
 ]
 

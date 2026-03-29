@@ -181,7 +181,7 @@ export type Database = {
           signal_id: string
           notes: string | null
           tags: string[]
-          status: 'inbox' | 'researching' | 'building' | 'pass'
+          status: 'inbox' | 'researching' | 'building' | 'pass' | 'archived'
           created_at: string
         }
         Insert: {
@@ -190,13 +190,13 @@ export type Database = {
           signal_id: string
           notes?: string | null
           tags?: string[]
-          status?: 'inbox' | 'researching' | 'building' | 'pass'
+          status?: 'inbox' | 'researching' | 'building' | 'pass' | 'archived'
           created_at?: string
         }
         Update: {
           notes?: string | null
           tags?: string[]
-          status?: 'inbox' | 'researching' | 'building' | 'pass'
+          status?: 'inbox' | 'researching' | 'building' | 'pass' | 'archived'
         }
       }
       crawl_jobs: {

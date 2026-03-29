@@ -46,6 +46,7 @@ export default async function SavedPage({ searchParams }: { searchParams: Search
     .select('id, notes, tags, status, created_at, signal_id, signals:signal_id(id, title, signal_type, total_score)')
     .eq('user_id', user!.id)
     .eq('status', status)
+    .neq('status', 'archived')
     .order('created_at', { ascending: false })
 
   const raw = (rawData ?? []) as unknown as RawRow[]
