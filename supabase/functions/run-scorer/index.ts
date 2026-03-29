@@ -139,6 +139,77 @@ function composite(demand: number, gap: number, feasibility: number): number {
 }
 
 // ---------------------------------------------------------------------------
+// Audience detection
+// ---------------------------------------------------------------------------
+
+function detectAudienceFromRepo(repo: Record<string, unknown>): 'technical' | 'non-technical' | 'mixed' {
+  const topics = ((repo.topics as string[]) ?? []).map((t) => t.toLowerCase())
+  const description = ((repo.description as string) ?? '').toLowerCase()
+
+  const technicalTopics = [
+    'cli', 'api', 'sdk', 'library', 'framework', 'developer-tools', 'devtools',
+    'devops', 'kubernetes', 'docker', 'self-hosted', 'automation', 'shell',
+    'terminal', 'compiler', 'parser', 'database', 'networking', 'security',
+    'cryptography', 'infrastructure', 'monitoring', 'testing', 'debugging',
+  ]
+  const nonTechnicalTopics = [
+    'productivity', 'finance', 'accounting', 'health', 'fitness', 'education',
+    'writing', 'note-taking', 'design', 'marketing', 'crm', 'ecommerce',
+    'calendar', 'todo', 'budgeting', 'recipe', 'travel', 'social-media',
+  ]
+
+  const techScore = topics.filter((t) => technicalTopics.includes(t)).length
+  const nonTechScore = topics.filter((t) => nonTechnicalTopics.includes(t)).length
+
+  // Also check description for strong signals
+  const techDescWords = ['api', 'cli', 'sdk', 'library', 'developers', 'engineers', 'devops']
+  const nonTechDescWords = ['business', 'teams', 'managers', 'users', 'everyone', 'anyone']
+  const techDescScore = techDescWords.filter((w) => description.includes(w)).length
+  const nonTechDescScore = nonTechDescWords.filter((w) => description.includes(w)).length
+
+  const total = techScore + techDescScore - (nonTechScore + nonTechDescScore)
+
+  if (total >= 2) return 'technical'
+  if (total <= -1) return 'non-technical'
+  return 'mixed'
+}
+
+function detectAudienceFromPost(post: Record<string, unknown>): 'technical' | 'non-technical' | 'mixed' {
+  const subreddit = ((post.subreddit as string) ?? '').toLowerCase()
+  const body = ((post.body as string) ?? '').toLowerCase()
+  const title = ((post.title as string) ?? '').toLowerCase()
+  const text = `${title} ${body}`
+
+  const technicalSubs = [
+    'programming', 'webdev', 'selfhosted', 'devops', 'homelab',
+    'sysadmin', 'linux', 'python', 'javascript', 'typescript',
+    'golang', 'rust', 'netsec', 'MachineLearning',
+  ]
+  const nonTechnicalSubs = [
+    'entrepreneur', 'startups', 'nocode', 'smallbusiness',
+    'marketing', 'sales', 'productivity',
+  ]
+  const mixedSubs = ['SaaS', 'Indiehackers', 'sideproject', 'webdev']
+
+  if (technicalSubs.includes(subreddit)) return 'technical'
+  if (nonTechnicalSubs.includes(subreddit)) return 'non-technical'
+  if (mixedSubs.includes(subreddit)) {
+    // Fall through to text analysis
+  }
+
+  // Text signals
+  const techWords = ['api', 'cli', 'sdk', 'open source', 'self-host', 'docker', 'developer', 'engineer', 'code', 'github', 'terminal']
+  const nonTechWords = ['no code', 'nocode', 'non-technical', 'business owner', 'small business', 'easy to use', 'without coding', 'drag and drop']
+
+  const techCount = techWords.filter((w) => text.includes(w)).length
+  const nonTechCount = nonTechWords.filter((w) => text.includes(w)).length
+
+  if (techCount > nonTechCount + 1) return 'technical'
+  if (nonTechCount > techCount) return 'non-technical'
+  return 'mixed'
+}
+
+// ---------------------------------------------------------------------------
 // AI summary (only called for high-scoring signals)
 // ---------------------------------------------------------------------------
 
@@ -238,6 +309,7 @@ Deno.serve(async () => {
       let aiContext = ''
       let signalType: 'github_repo' | 'reddit_post' | 'twitter_post' = 'github_repo'
       let refField: { ref_github_repo?: string; ref_social_post?: string } = {}
+      let entityData: Record<string, unknown> = {}
 
       if (item.entity_type === 'github_repo') {
         const { data: repo } = await supabase
@@ -248,7 +320,8 @@ Deno.serve(async () => {
 
         if (!repo) throw new Error('Repo not found')
 
-        const scores = scoreGithubRepo(repo as Record<string, unknown>)
+        entityData = repo as Record<string, unknown>
+        const scores = scoreGithubRepo(entityData)
         demand = scores.demand
         gap = scores.gap
         feasibility = scores.feasibility
@@ -273,7 +346,8 @@ Deno.serve(async () => {
 
         if (!post) throw new Error('Post not found')
 
-        const scores = scoreSocialPost(post as Record<string, unknown>)
+        entityData = post as Record<string, unknown>
+        const scores = scoreSocialPost(entityData)
         demand = scores.demand
         gap = scores.gap
         feasibility = scores.feasibility
@@ -314,6 +388,10 @@ Deno.serve(async () => {
         }
       }
 
+      const audience = item.entity_type === 'github_repo'
+        ? detectAudienceFromRepo(entityData)
+        : detectAudienceFromPost(entityData)
+
       const signalData = {
         signal_type: signalType,
         ...refField,
@@ -328,6 +406,7 @@ Deno.serve(async () => {
         total_score: parseFloat(total.toFixed(3)),
         score_version: SCORE_VERSION,
         scored_at: new Date().toISOString(),
+        audience,
       }
 
       if (existing) {

@@ -12,6 +12,7 @@ type SignalRow = {
   total_score: number | null
   demand_score: number | null
   gap_score: number | null
+  audience: 'technical' | 'non-technical' | 'mixed' | null
   fetched_at: string
 }
 
@@ -44,7 +45,7 @@ export default async function SignalsPage({ searchParams }: { searchParams: Sear
 
   let query = supabase
     .from('signals')
-    .select('id, signal_type, title, total_score, demand_score, gap_score, fetched_at', { count: 'exact' })
+    .select('id, signal_type, title, total_score, demand_score, gap_score, audience, fetched_at', { count: 'exact' })
     .range(offset, offset + limit - 1)
 
   if (type !== 'all') query = query.eq('signal_type', type)
@@ -122,6 +123,7 @@ export default async function SignalsPage({ searchParams }: { searchParams: Sear
             <thead>
               <tr className="border-b border-zinc-100 dark:border-zinc-800 text-xs text-zinc-400 uppercase tracking-wide">
                 <th className="px-4 py-3 text-left font-medium">Signal</th>
+                <th className="px-4 py-3 text-left font-medium">Audience</th>
                 <th className="px-4 py-3 text-right font-medium">Demand</th>
                 <th className="px-4 py-3 text-right font-medium">Gap</th>
                 <th className="px-4 py-3 text-right font-medium">Score</th>
@@ -140,6 +142,19 @@ export default async function SignalsPage({ searchParams }: { searchParams: Sear
                         {s.title}
                       </span>
                     </Link>
+                  </td>
+                  <td className="px-4 py-3">
+                    {s.audience && (
+                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                        s.audience === 'technical'
+                          ? 'bg-violet-100 dark:bg-violet-900/40 text-violet-700 dark:text-violet-300'
+                          : s.audience === 'non-technical'
+                          ? 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300'
+                          : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400'
+                      }`}>
+                        {s.audience === 'technical' ? 'Dev' : s.audience === 'non-technical' ? 'Business' : 'Mixed'}
+                      </span>
+                    )}
                   </td>
                   <td className="px-4 py-3 text-right">
                     <ScoreBadge value={s.demand_score} />

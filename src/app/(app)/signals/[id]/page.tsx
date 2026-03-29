@@ -62,6 +62,17 @@ export default async function SignalDetailPage({ params }: Props) {
             <span className="text-xs font-medium px-2 py-1 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-500">
               {signal.signal_type === 'github_repo' ? 'GitHub' : signal.signal_type === 'reddit_post' ? 'Reddit' : 'Twitter'}
             </span>
+            {signal.audience && (
+              <span className={`text-xs font-medium px-2 py-1 rounded ${
+                signal.audience === 'technical'
+                  ? 'bg-violet-100 dark:bg-violet-900/40 text-violet-700 dark:text-violet-300'
+                  : signal.audience === 'non-technical'
+                  ? 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300'
+                  : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400'
+              }`}>
+                {signal.audience === 'technical' ? 'Developer audience' : signal.audience === 'non-technical' ? 'Business audience' : 'Mixed audience'}
+              </span>
+            )}
             <SignalActions signalId={id} initialState={initialState} alwaysVisible navigateOnAction />
           </div>
         </div>
