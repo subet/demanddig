@@ -20,7 +20,7 @@ type SearchParams = Promise<{ type?: string; sort?: string; page?: string }>
 export default async function SignalsPage({ searchParams }: { searchParams: SearchParams }) {
   const params = await searchParams
   const type = params.type ?? 'all'
-  const sort = params.sort ?? 'newest'
+  const sort = params.sort ?? 'total_score'
   const page = Number(params.page ?? 1)
   const limit = 25
   const offset = (page - 1) * limit
@@ -91,8 +91,8 @@ export default async function SignalsPage({ searchParams }: { searchParams: Sear
         ))}
         <div className="ml-auto flex gap-2">
           {[
-            { label: 'Newest', value: 'newest' },
             { label: 'Score', value: 'total_score' },
+            { label: 'Newest', value: 'newest' },
             { label: 'Demand', value: 'demand' },
             { label: 'Gap', value: 'gap' },
           ].map((s) => (

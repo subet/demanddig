@@ -10,10 +10,12 @@ export function SignalActions({
   signalId,
   initialState = 'none',
   alwaysVisible = false,
+  navigateOnAction = false,
 }: {
   signalId: string
   initialState?: ActionState
   alwaysVisible?: boolean
+  navigateOnAction?: boolean
 }) {
   const [state, setState] = useState<ActionState>(initialState)
   const [loading, setLoading] = useState(false)
@@ -28,7 +30,6 @@ export function SignalActions({
       (action === 'archive' && state === 'archived')
 
     if (isSameAction) {
-      // Undo — remove from saved/archived
       await fetch(`/api/signals/${signalId}/action`, { method: 'DELETE' })
       setState('none')
     } else {
@@ -38,8 +39,14 @@ export function SignalActions({
         body: JSON.stringify({ action }),
       })
       setState(action === 'save' ? 'saved' : 'archived')
-      // Remove from signals list after a short delay so user sees the feedback
-      setTimeout(() => router.refresh(), 600)
+
+      if (navigateOnAction) {
+        // On detail page: go to signals list after acting
+        router.push('/signals')
+      } else {
+        // On list page: just refresh to hide the row
+        setTimeout(() => router.refresh(), 600)
+      }
     }
 
     setLoading(false)
