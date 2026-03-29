@@ -141,6 +141,7 @@ export type Database = {
           score_version: number
           scored_at: string | null
           fetched_at: string
+          audience: 'technical' | 'non-technical' | 'mixed' | null
         }
         Insert: {
           id?: string
@@ -159,6 +160,7 @@ export type Database = {
           score_version?: number
           scored_at?: string | null
           fetched_at?: string
+          audience?: 'technical' | 'non-technical' | 'mixed' | null
         }
         Update: {
           title?: string
@@ -172,6 +174,7 @@ export type Database = {
           total_score?: number | null
           score_version?: number
           scored_at?: string | null
+          audience?: 'technical' | 'non-technical' | 'mixed' | null
         }
       }
       user_saved_signals: {
