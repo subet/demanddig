@@ -4,6 +4,7 @@ export const dynamic = 'force-dynamic'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import type { Signal, GithubRepo, SocialPost } from '@/lib/supabase/types'
+import { SignalActions } from '@/components/signal-actions'
 
 type Props = { params: Promise<{ id: string }> }
 
@@ -16,17 +17,33 @@ export default async function SignalDetailPage({ params }: Props) {
   const { id } = await params
   const supabase = await createClient()
 
-  const { data } = await supabase
-    .from('signals')
-    .select('*, github_repos:ref_github_repo(*), social_posts:ref_social_post(*)')
-    .eq('id', id)
-    .single()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  const [{ data }, { data: savedRows }] = await Promise.all([
+    supabase
+      .from('signals')
+      .select('*, github_repos:ref_github_repo(*), social_posts:ref_social_post(*)')
+      .eq('id', id)
+      .single(),
+    user
+      ? supabase
+          .from('user_saved_signals')
+          .select('status')
+          .eq('user_id', user.id)
+          .eq('signal_id', id)
+          .limit(1)
+      : Promise.resolve({ data: [] }),
+  ])
 
   if (!data) notFound()
 
   const signal = data as unknown as SignalWithJoins
   const repo = signal.github_repos
   const post = signal.social_posts
+
+  const savedStatus = (savedRows as { status: string }[] | null)?.[0]?.status
+  const initialState =
+    savedStatus === 'archived' ? 'archived' : savedStatus ? 'saved' : 'none'
 
   return (
     <div className="p-8 max-w-3xl mx-auto space-y-8">
@@ -41,9 +58,12 @@ export default async function SignalDetailPage({ params }: Props) {
           <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 leading-tight">
             {signal.title}
           </h1>
-          <span className="text-xs font-medium px-2 py-1 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-500 shrink-0 mt-1">
-            {signal.signal_type === 'github_repo' ? 'GitHub' : signal.signal_type === 'reddit_post' ? 'Reddit' : 'Twitter'}
-          </span>
+          <div className="flex items-center gap-2 shrink-0 mt-1">
+            <span className="text-xs font-medium px-2 py-1 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-500">
+              {signal.signal_type === 'github_repo' ? 'GitHub' : signal.signal_type === 'reddit_post' ? 'Reddit' : 'Twitter'}
+            </span>
+            <SignalActions signalId={id} initialState={initialState} alwaysVisible />
+          </div>
         </div>
       </div>
 

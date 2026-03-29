@@ -9,9 +9,11 @@ type ActionState = 'none' | 'saved' | 'archived'
 export function SignalActions({
   signalId,
   initialState = 'none',
+  alwaysVisible = false,
 }: {
   signalId: string
   initialState?: ActionState
+  alwaysVisible?: boolean
 }) {
   const [state, setState] = useState<ActionState>(initialState)
   const [loading, setLoading] = useState(false)
@@ -44,7 +46,7 @@ export function SignalActions({
   }
 
   return (
-    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+    <div className={`flex items-center gap-1 transition-opacity ${alwaysVisible ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
       {/* Save */}
       <button
         onClick={(e) => { e.preventDefault(); handleAction('save') }}
