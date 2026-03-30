@@ -40,8 +40,7 @@ export default async function SignalsPage({ searchParams }: { searchParams: Sear
     : { data: [] as UserAction[] }
 
   const actions = (userActions ?? []) as UserAction[]
-  // Only hide archived signals; saved signals remain visible with bookmark filled
-  const hiddenIds = actions.filter((r) => r.status === 'archived').map((r) => r.signal_id)
+  const hiddenIds = actions.map((r) => r.signal_id)
   const savedMap = new Map(actions.map((r) => [r.signal_id, r.status]))
 
   let query = supabase
